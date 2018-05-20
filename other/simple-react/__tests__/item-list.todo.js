@@ -1,9 +1,43 @@
+import React from 'react';
+import ReactDOM from 'react-dom';
+
+import ItemList from '../item-list';
+
 // Your job:
 // Test the case where the items provided is empty:
 //   <ItemList items={[]} />
+
+test('Test case where the item list provided is empty', () => {
+  // Arrange
+  const container = document.createElement('div');
+  // render an empty item list inside the container (div)
+  // Act
+  ReactDOM.render(<ItemList items={[]} />, container);
+  console.log(container.textContent);
+
+
+  // Assert
+  expect(container.textContent).toMatch(/(no items)/);
+});
 // Test the case where there are items in the list:
 //   <ItemList items={['apple', 'orange', 'pear']} />
-//
+test(`Test case where the item list provided is ['apple', 'orange', 'pear']`, () => {
+  // Arrange
+  const container = document.createElement('div');
+  // render an empty item list inside the container (div)
+  // Act
+  ReactDOM.render(<ItemList items={['apple', 'orange', 'pear']} />, container);
+  console.log(container.textContent);
+
+
+  // Assert
+  expect(container.textContent).toMatch(/(apple)/);
+  expect(container.textContent).toMatch(/(orange)/);
+  expect(container.textContent).toMatch(/(pear)/);
+
+
+});
+
 // Don't overthink it. This is just a practice run to warm you up
 // to testing react components.
 
@@ -36,8 +70,8 @@
 /*
 http://ws.kcd.im/?ws=Testing&e=basic%20react%20test&em=
 */
-test.skip('I submitted my elaboration and feedback', () => {
-  const submitted = false // change this when you've submitted!
+test('I submitted my elaboration and feedback', () => {
+  const submitted = true // change this when you've submitted!
   expect(submitted).toBe(true)
 })
 ////////////////////////////////
