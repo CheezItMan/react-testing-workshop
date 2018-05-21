@@ -1,54 +1,71 @@
 import React from 'react'
-import {
-  generate,
-  wait,
-  cleanup,
-  fireEvent,
-  renderIntoDocument,
-  render,
-} from 'til-client-test-utils'
-import Editor from '../editor'
+import ReactDOM from 'react-dom'
+import * as utilsMock from '../../utils/api'
+import Editor from '../editor.todo'
 
-afterEach(cleanup)
-
-test('calls onSubmit with the username and password when submitted', async () => {
-  // Arrange
-  const fakeUser = generate.userData({id: generate.id()})
-  const fakePost = generate.postData({authorId: fakeUser.id})
-  const fakeHistory = {push: jest.fn()}
-  const fakeApi = {
+jest.mock('../../utils/api', () => {
+  return {
     posts: {
       create: jest.fn(() => Promise.resolve()),
     },
   }
-  const {getByText, getByLabelText} = renderIntoDocument(
-    <Editor api={fakeApi} user={fakeUser} history={fakeHistory} />,
-  )
+})
 
-  getByLabelText('Title').value = fakePost.title
-  getByLabelText('Content').value = fakePost.content
-  getByLabelText('Tags').value = fakePost.tags.join(', ')
-  const preDate = Date.now()
+const flushPromises = () => {
+  return new Promise(resolve => {
+    setTimeout(resolve, 0)
+  })
+}
 
+test('calls onSubmit with the username and password when submitted', async () => {
+  // Arrange
+  // create a fake user, post, history, and api
+  const container = document.createElement('div')
+  // arrange
+  const fakeUser = {
+    id: 'foobar',
+  }
+  const fakeHistory = {
+    push: jest.fn(),
+  }
+  ReactDOM.render(<Editor user={fakeUser} history={fakeHistory} />, container)
+  const form = container.querySelector('form')
+  const {title, content, tags} = form.elements
+  title.value = 'I like Kitkat'
+  content.value = 'like a lot... mostly'
+  tags.value = 'twix,  my, likes'
+
+  const submit = new Event('submit')
   // Act
-  fireEvent.click(getByText('submit'))
+  form.dispatchEvent(submit)
+  await flushPromises()
 
   // Assert
-  expect(fakeApi.posts.create).toHaveBeenCalledTimes(1)
-  expect(fakeApi.posts.create).toHaveBeenCalledWith({
-    ...fakePost,
+
+  expect(fakeHistory.push).toHaveBeenCalledTimes(1)
+  expect(fakeHistory.push).toHaveBeenCalledWith('/')
+  expect(utilsMock.posts.create).toHaveBeenCalledTimes(1)
+  expect(utilsMock.posts.create).toHaveBeenCalledWith({
+    authorId: fakeUser.id,
+    title: title.value,
+    content: content.value,
+    tags: ['twix', 'my', 'likes'],
     date: expect.any(String),
   })
 
-  const postDate = Date.now()
-  await wait(() => expect(fakeHistory.push).toHaveBeenCalledTimes(1))
-  expect(fakeHistory.push).toHaveBeenCalledWith('/')
-  const date = new Date(fakeApi.posts.create.mock.calls[0][0].date).getTime()
-  expect(date).toBeGreaterThanOrEqual(preDate)
-  expect(date).toBeLessThanOrEqual(postDate)
+  //
+  // use ReactDOM.render() to render the editor to a div
+  //
+  // fill out form elements with your fake post
+  //
+  // Act
+  // submit form
+  //
+  // wait for promise to settle
+  //
+  // Assert
+  // ensure the create function was called with the right data
 })
 
-test('snapshot', () => {
-  const {container} = render(<Editor />)
-  expect(container.firstChild).toMatchSnapshot()
-})
+// TODO later...
+test('snapshot', () => {})
